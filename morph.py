@@ -62,7 +62,7 @@ def erode(img, structuring_element, anchor):
             struct_x_end = structuring_element.shape[1]
             struct_y_start = 0
             struct_y_end = structuring_element.shape[0]
-            if x_start < 0 or  x_end > w or y_start < 0 or y_end > h:
+            if x_start < 0 or x_end > w or y_start < 0 or y_end > h:
                 result[i][j] = 0
             else:
                 struct_window = structuring_element[struct_y_start:struct_y_end,
@@ -115,6 +115,22 @@ def hit_miss(img, structuring_element, anchor):
     return hit_img & miss_img
 
 
+def morph_gradient(img, structuring_element, anchor):
+    dilation_dst = dilate(img, structuring_element, anchor)
+    erosion_dst = erode(img, structuring_element, anchor)
+    return dilation_dst - erosion_dst
+
+
+def top_hat(img, structuring_element, anchor):
+    opening_dst = opening(img, structuring_element, anchor)
+    return img - opening_dst
+
+
+def black_hat(img, structuring_element, anchor):
+    closing_dst = closing(img, structuring_element, anchor)
+    return closing_dst - img
+
+
 def invert(img):
     result = img.copy()
     result[img == 255] = 0
@@ -126,11 +142,15 @@ def main():
     img = cv2.imread('template.jpg')
     gray = gs.grayscale_luna_np(img)
     binary = tr.otsu_2(gray)
-    element = np.array([[0, 255, 0], [-255, 255, 255], [-255, -255, 0]])
-
-    hit = hit_miss(binary, element, (1, 1))
+    # element = np.array([[0, 255, 0], [-255, 255, 255], [-255, -255, 0]])
+    element = np.array([[0, 255, 0], [255, 255, 255], [0, 255, 0]])
+    # hit = hit_miss(binary, element, (1, 1))
+    open_dst = opening(binary, element, (1,1))
+    grad = top_hat(binary, element, (1, 1))
     cv2.imshow("first", binary)
-    cv2.imshow("hit_miss", hit)
+    cv2.imshow("open", open_dst)
+    cv2.imshow("grad", grad)
+    # cv2.imshow("hit_miss", hit)
     cv2.waitKey()
     # size = 1
     # element = cv2.getStructuringElement(cv2.MORPH_CROSS, (2 * size + 1, 2 * size + 1))
