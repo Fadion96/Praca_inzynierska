@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+from skimage.exposure import rescale_intensity
 
 
 def wrapper(func, *args, **kwargs):
@@ -346,7 +347,7 @@ def make_lut_stretching(minimum, maximum):
 
 
 def make_lut_contrast(alpha):
-    lut = [0] * 256
+    lut = np.array([0] * 256)
     for i in range(256):
         lut[i] = int(alpha * (i - 127) + 127)
     lut[lut > 255] = 255
@@ -363,6 +364,34 @@ def make_lut_erosion(element):
     lut[number] = 255
     return lut
 
+
+def convolution(img, kernel):
+    height, width = img.shape
+    kernel_height, kernel_width = kernel.shape
+    divisor = np.sum(kernel)
+    if divisor == 0:
+        divisor = 1
+    padding = (kernel_height - 1) // 2
+    padded_img = cv2.copyMakeBorder(img, padding, padding, padding, padding, cv2.BORDER_REPLICATE)
+    result = np.zeros(img.shape, dtype="float32")
+    for y in range(padding, height + padding):
+        for x in range(padding, width + padding):
+            window = padded_img[y - padding: y + padding + 1, x - padding: x + padding + 1]
+            value = np.sum(window * kernel) // divisor
+            result[y - padding, x - padding] = value
+    result = rescale_intensity(result, in_range=(0, 255))
+    result = (result * 255).astype("uint8")
+    return result
+
+
+def image_multiplication(img, mask):
+    if img.shape == mask.shape:
+        result = img & mask
+        return result
+    else:
+        return img
+
+
 # wstep - cel pracy, dlaczego problem jest interesujacy, jakies porowanie z istniejacymi rozwiazaniami
 # wymagania fukcjonalne
 # algorytmy, wykorzystane narzedzia itd
@@ -375,20 +404,73 @@ def make_lut_erosion(element):
 # podsumowanie, co mozna rozwinac (jeden czy dwa pomysły bardziej opisać)
 
 
-# rescaling, mnozenie przez maske, kernele
+# rescaling
 # do gui rozwidlenie zlaczenie
 # weryfikacja typow (klasa)
 # semafor na czekanie sciezek
 #
 
 def main():
-    img = cv2.imread('hd.jpg')
+    img = cv2.imread('lena.png')
+    b = img[:, :, 0]
+    g = img[:, :, 1]
+    r = img[:, :, 2]
+    # mask = cv2.imread('template2.png')
     gray = grayscale_luma(img)
-    his = histogram_equalization(gray)
-    # con = change_brightness(change_brightness(gray, 100), -50)
-    # contr = stretching_histogram(con)
+    contgray = change_contrast(gray, 0.7)
+    neg = invert(contgray)
+    # mask_grey = grayscale_luma(mask)
+    # bin_mask = otsu(mask_grey)
+    # multi = image_multiplication(img, mask)
+    sharpen = np.array((
+        [0, -1, 0],
+        [-1, 5, -1],
+        [0, -1, 0]), dtype="int")
+    laplacian = np.array((
+        [0, 1, 0],
+        [1, -4, 1],
+        [0, 1, 0]), dtype="int")
+    conv2 = convolution(gray, laplacian)
+    lap_bin = otsu(conv2)
+    bconv = convolution(b, sharpen)
+    gconv = convolution(g, sharpen)
+    rconv = convolution(r, sharpen)
+
+    conv = cv2.merge((bconv, gconv, rconv))
+    beq = histogram_equalization(bconv)
+    geq = histogram_equalization(gconv)
+    req = histogram_equalization(rconv)
+    eq = cv2.merge((beq, geq, req))
+    test = image_multiplication(neg, lap_bin)
+    bt = image_multiplication(beq, test)
+    gt = image_multiplication(geq, test)
+    rt = image_multiplication(req, test)
+    test2 = cv2.merge((bt, gt, rt))
+    test3 = cv2.merge((invert(bt), invert(gt), invert(rt)))
+    test4 = cv2.merge((histogram_equalization(invert(bt)), histogram_equalization(invert(gt)), histogram_equalization(invert(rt))))
+    cv2.imwrite("prez2/start.jpg", img)
     cv2.imshow("gray", gray)
-    cv2.imshow('hist', his)
+    cv2.imwrite("prez2/gray.jpg", gray)
+    cv2.imshow("conv", conv)
+    cv2.imwrite("prez2/conv.jpg", conv)
+    cv2.imshow("cont", contgray)
+    cv2.imwrite("prez2/contgray.jpg", contgray)
+    cv2.imshow("lap", conv2)
+    cv2.imwrite("prez2/lap.jpg", conv2)
+    cv2.imshow("binlap", lap_bin)
+    cv2.imwrite("prez2/binlap.jpg", lap_bin)
+    cv2.imshow("neg", neg)
+    cv2.imwrite("prez2/neg.jpg", neg)
+    cv2.imshow("eq", eq)
+    cv2.imwrite("prez2/eq.jpg", eq)
+    cv2.imshow("test", test)
+    cv2.imwrite("prez2/multi.jpg", test)
+    cv2.imshow("test2", test2)
+    cv2.imwrite("prez2/multi2.jpg", test2)
+    cv2.imshow("test3", test3)
+    cv2.imwrite("prez2/inv.jpg", test3)
+    cv2.imshow("end", test4)
+    cv2.imwrite("prez2/end.jpg", test4)
     cv2.waitKey()
     # binary = otsu(gray)
     # element = np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]])
