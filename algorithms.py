@@ -3,13 +3,7 @@ import cv2
 import time
 import multiprocessing
 from skimage.exposure import rescale_intensity
-
-
-def wrapper(func, *args, **kwargs):
-    def wrapped():
-        return func(*args, **kwargs)
-
-    return wrapped
+from utils import *
 
 
 def load_image(path) -> np.ndarray:
@@ -291,14 +285,7 @@ def black_hat(img, structuring_element, anchor):
     return closing_dst - img
 
 
-def invert_channel(img):
-    result = img.copy()
-    result = 255 - result
-    return result
-
-
 def invert(img):
-    ts = time.time()
     if len(img.shape) == 3:
         channels = []
         b = img[:, :, 0]
@@ -308,12 +295,8 @@ def invert(img):
         channels.append(invert_channel(g))
         channels.append(invert_channel(r))
         result = cv2.merge(channels)
-        t = (time.time() - ts)
-        print("RBG negation {:} ms".format(t * 1000))
     else:
         result = invert_channel(img)
-        t = (time.time() - ts)
-        print("Grayscale negation {:} ms".format(t * 1000))
 
     return result
 
@@ -357,73 +340,9 @@ def stretching_histogram(img):
     return result
 
 
-def histogram_equalization_channel(img):
-    result = img.copy()
-    his, bins = np.histogram(img, np.arange(0, 257))
-    cumulative_distribution = his.cumsum()
-    lut = np.uint8(255 * cumulative_distribution / cumulative_distribution[-1])
-    for i in range(img.shape[0]):
-        for j in range(img.shape[1]):
-            result[i, j] = lut[img[i, j]]
-    return result
-
-
-def make_lut_stretching(minimum, maximum):
-    lut = [0] * 256
-    for i in range(256):
-        lut[i] = int((i - minimum) / (maximum - minimum) * 255)
-    return lut
-
-
-def make_lut_contrast(alpha):
-    lut = np.array([0] * 256)
-    for i in range(256):
-        lut[i] = int(alpha * (i - 127) + 127)
-    lut[lut > 255] = 255
-    lut[lut < 0] = 0
-    return lut
-
-
-def make_lut_erosion(element):
-    lut_size = 2 ** element.size
-    lut = np.array([0] * lut_size)
-    number = 0
-    for bit in element.flatten():
-        number = (number << 1) | bit
-    lut[number] = 255
-    return lut
-
-
-def convolution_channel(img, kernel):
-    height, width = img.shape
-    kernel_height, kernel_width = kernel.shape
-    divisor = np.sum(kernel)
-    if divisor == 0:
-        divisor = 1
-    padding = (kernel_height - 1) // 2
-    padded_img = cv2.copyMakeBorder(img, padding, padding, padding, padding, cv2.BORDER_REPLICATE)
-    result = np.zeros(img.shape, dtype="float32")
-    for y in range(padding, height + padding):
-        for x in range(padding, width + padding):
-            window = padded_img[y - padding: y + padding + 1, x - padding: x + padding + 1]
-            value = np.sum(window * kernel) // divisor
-            result[y - padding, x - padding] = value
-    result = rescale_intensity(result, in_range=(0, 255))
-    result = (result * 255).astype("uint8")
-    return result
-
-
-def multiplication_channel(img, mask):
-    result = img & mask
-    return result
-
-
 def multiplication(img, mask):
-    ts = time.time()
     if img.shape == mask.shape:
         result = multiplication_channel(img, mask)
-        t = (time.time() - ts)
-        print("Grayscale multi {:} ms".format(t * 1000))
     else:
         channels = []
         b = img[:, :, 0]
@@ -433,203 +352,49 @@ def multiplication(img, mask):
         channels.append(multiplication_channel(g, mask))
         channels.append(multiplication_channel(r, mask))
         result = cv2.merge(channels)
-        t = (time.time() - ts)
-        print("RGB multi {:} ms".format(t * 1000))
 
     return result
 
 
 def convolution(img, kernel):
-    ts = time.time()
     if len(img.shape) == 3:
         b = img[:, :, 0]
         g = img[:, :, 1]
         r = img[:, :, 2]
         pool = multiprocessing.Pool(processes=3)
         channels = pool.starmap(convolution_channel, [(b, kernel), (g, kernel), (r, kernel)])
+        pool.close()
         result = cv2.merge(channels)
-        t = (time.time() - ts)
-        print("RBG convolution {:} ms".format(t * 1000))
     else:
         result = convolution_channel(img, kernel)
-        t = (time.time() - ts)
-        print("Grayscale convolution {:} ms".format(t * 1000))
 
     return result
 
 
 def histogram_equalization(img):
-    ts = time.time()
     if len(img.shape) == 3:
         b = img[:, :, 0]
         g = img[:, :, 1]
         r = img[:, :, 2]
         pool = multiprocessing.Pool(processes=3)
         channels = pool.map(histogram_equalization_channel, [b, g, r])
+        pool.close()
         result = cv2.merge(channels)
-        t = (time.time() - ts)
-        print("RBG HE {:} ms".format(t * 1000))
     else:
-        result = histogram_equalization_channel(img, )
-        t = (time.time() - ts)
-        print("Grayscale HE {:} ms".format(t * 1000))
+        result = histogram_equalization_channel(img)
 
-    return result
-
-
-def bilinear_interp(img, x, y):
-    height, width = img.shape[:2]
-    x0 = np.floor(x).astype(int)
-    x1 = np.floor(x).astype(int) + 1
-    y0 = np.floor(y).astype(int)
-    y1 = np.floor(y).astype(int) + 1
-
-    x0 = np.clip(x0, 0, width - 1)
-    x1 = np.clip(x1, 0, width - 1)
-    y0 = np.clip(y0, 0, height - 1)
-    y1 = np.clip(y1, 0, height - 1)
-
-    a = img[y0, x0]
-    b = img[y1, x0]
-    c = img[y0, x1]
-    d = img[y1, x1]
-
-    wa = (x1 - x) * (y1 - y)
-    wb = (x1 - x) * (y - y0)
-    wc = (x - x0) * (y1 - y)
-    wd = (x - x0) * (y - y0)
-
-    return a * wa + b * wb + c * wc + d * wd
-
-
-def bilinear_channel(img, x, y):
-    height, width = img.shape[:2]
-    result = np.zeros((y, x), dtype="uint8")
-    height_ratio = height / y
-    width_ratio = width / x
-
-    for i in range(y):
-        for j in range(x):
-            result[i, j] = bilinear_interp(img, j*width_ratio, i*height_ratio)
     return result
 
 
 def bilinear(img, x, y):
-    ts = time.time()
     if len(img.shape) == 3:
         b = img[:, :, 0]
         g = img[:, :, 1]
         r = img[:, :, 2]
         pool = multiprocessing.Pool(processes=3)
-        channels = pool.starmap(bilinear_channel, [(b, x, y), (g, x, y), (r, x, y),])
+        channels = pool.starmap(bilinear_channel, [(b, x, y), (g, x, y), (r, x, y), ])
+        pool.close()
         result = cv2.merge(channels)
-        t = (time.time() - ts)
-        print("RBG bilinear {:} ms".format(t * 1000))
     else:
         result = bilinear_channel(img, x, y)
-        t = (time.time() - ts)
-        print("Grayscale bilinear {:} ms".format(t * 1000))
     return result
-
-
-# wstep - cel pracy, dlaczego problem jest interesujacy, jakies porowanie z istniejacymi rozwiazaniami
-# wymagania fukcjonalne
-# algorytmy, wykorzystane narzedzia itd
-# opis implementacji
-# instrukcja, instalacja obsluga
-# testy poprawnosci (automatyczne)
-# user experience, dokumentacja, ergonomia, łatwość użytkowania
-# co warto dodac, algorytmy, czy funkcjonalnosc
-# komentarz do nich
-# podsumowanie, co mozna rozwinac (jeden czy dwa pomysły bardziej opisać)
-
-
-# rescaling
-# do gui rozwidlenie zlaczenie
-# weryfikacja typow (klasa)
-# semafor na czekanie sciezek
-#
-
-def main():
-    img = load_image('lena.tif')
-    gray = grayscale_luma(img)
-    test = bilinear(img, 256, 256)
-
-    # contgray = change_contrast(gray, 0.7)
-    # neg = invert(contgray)
-    # # mask_grey = grayscale_luma(mask)
-    # # bin_mask = otsu(mask_grey)
-    # # multi = image_multiplication(img, mask)
-    # sharpen = np.array((
-    #     [0, -1, 0],
-    #     [-1, 5, -1],
-    #     [0, -1, 0]), dtype="int")
-    # conv = convolution(img, sharpen)
-    # conv2 = convolution(gray, sharpen)
-    # he = histogram_equalization(conv)
-    # he2 = histogram_equalization(conv2)
-    # neg = invert(img)
-    # neg2 = invert(gray)
-    # laplacian = np.array((
-    #     [0, 1, 0],
-    #     [1, -4, 1],
-    #     [0, 1, 0]), dtype="int")
-    # lap = convolution(img, laplacian)
-    # lap2 = convolution(gray, laplacian)
-    # bin_lap = otsu(lap2)
-    # mask = multiplication(img, lap)
-    # mask2 = multiplication(img, bin_lap)
-    # conv2 = convolution(gray, laplacian)
-    # lap_bin = otsu(conv2)
-    # test = image_multiplication(neg, lap_bin)
-    # bt = image_multiplication(beq, test)
-    # gt = image_multiplication(geq, test)
-    # rt = image_multiplication(req, test)
-    # test2 = cv2.merge((bt, gt, rt))
-    # test3 = cv2.merge((invert(bt), invert(gt), invert(rt)))
-    # test4 = cv2.merge((histogram_equalization(invert(bt)), histogram_equalization(invert(gt)), histogram_equalization(invert(rt))))
-    # cv2.imshow("img", img)
-    # cv2.imshow("gray", gray)
-    # cv2.imshow("lap", lap)
-    # cv2.imshow("lap2", lap2)
-    # cv2.imshow("bin_lap", bin_lap)
-    # cv2.imshow("mask", mask)
-    # cv2.imshow("mask2", mask2)
-    cv2.imshow("test", test)
-    cv2.waitKey()
-    # cv2.imwrite("img.jpg", img)
-    # cv2.imwrite("gray.jpg", gray)
-    # cv2.imwrite("lap.jpg", lap)
-    # cv2.imwrite("lap2.jpg", lap2)
-    # cv2.imwrite("bin_lap.jpg", bin_lap)
-    # cv2.imwrite("mask.jpg", mask)
-    # cv2.imwrite("mask2.jpg", mask2)
-    # cv2.imshow("conv", conv)
-    # cv2.imshow("conv2", conv2)
-    # cv2.imshow("he", he)
-    # cv2.imshow("he2", he2)
-    # cv2.imshow("neg", neg)
-    # cv2.imshow("neg2", neg2)
-    # cv2.imshow("cont", contgray)
-    # cv2.imshow("lap", conv2)
-    # cv2.imshow("binlap", lap_bin)
-    # cv2.imshow("neg", neg)
-    # cv2.imshow("eq", eq)
-    # cv2.imshow("test2", test2)
-    # cv2.imshow("test3", test3)
-    # cv2.imshow("end", test4)
-    # binary = otsu(gray)
-    # element = np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]])
-    # size = 1
-    # element = cv2.getStructuringElement(cv2.MORPH_CROSS, (2 * size + 1, 2 * size + 1))
-    # ero = erosion(binary, element, (size, size))
-    # ero2 = bin_erosion(binary, element, (size, size))
-
-    # wrapped = wrapper(erosion, binary, element, (1, 1))
-    # wrapped2 = wrapper(bin_erosion, binary, element, (1, 1))
-    # print((timeit.timeit(wrapped, number=20))/20)
-    # print((timeit.timeit(wrapped2, number=20))/20)
-
-
-if __name__ == '__main__':
-    main()
