@@ -340,17 +340,17 @@ def stretching_histogram(img):
     return result
 
 
-def multiplication(img, mask):
-    if img.shape == mask.shape:
-        result = multiplication_channel(img, mask)
+def multiplication(img, img_2):
+    if img.shape == img_2.shape:
+        result = multiplication_channel(img, img_2)
     else:
         channels = []
         b = img[:, :, 0]
         g = img[:, :, 1]
         r = img[:, :, 2]
-        channels.append(multiplication_channel(b, mask))
-        channels.append(multiplication_channel(g, mask))
-        channels.append(multiplication_channel(r, mask))
+        channels.append(multiplication_channel(b, img_2))
+        channels.append(multiplication_channel(g, img_2))
+        channels.append(multiplication_channel(r, img_2))
         result = cv2.merge(channels)
 
     return result
