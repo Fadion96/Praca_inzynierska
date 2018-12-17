@@ -233,13 +233,42 @@ functions = dict_functions(alg)
 user_func = {}
 
 
+def createFunctionsJson(module):
+    model = 'processing.processingfunction'
+    pk = 1
+    json_arr = []
+    for func in module.__dict__.values():
+        if is_mod_function(module, func):
+            data = {}
+            data.setdefault("model", model)
+            data.setdefault("pk", pk)
+            pk += 1
+            fields = {}
+            fields.setdefault("name", func.__name__)
+            fields.setdefault("function", func.__name__)
+            args = inspect.getfullargspec(func).args
+            number_of_images = len([x for x in args if x.startswith('img')])
+            fields.setdefault("number_of_images", number_of_images)
+            # params = {}
+            # rest = [x for x in args if not x.startswith('img')]
+            # for el in rest:
+            #     params.setdefault(el, el)
+            # if not params:
+            params = None
+            fields.setdefault("params", params)
+            data.setdefault("fields", fields)
+            json_arr.append(data)
+    with open('data.json', "w") as file:
+        json.dump(json_arr, file)
+
+
 def main():
     # własne skrypty (weź plik, wczytaj go, zapisz f do 2 słownika "nazwa": f, jezeli nie ma w moich, to z 2.
     # Zapis ścieżki bieremy tego jsona input na none (albo z inputem) tak samo algorytmy
     # zapis zdjecia
     # no i gui i testy
-
-    path = get_json("path.json")
+    createFunctionsJson(alg)
+    # path = get_json("path.json")
     #
     # do_algorithm(path)
     # # wrapped = wrapper(do_algorithm, TEST_DAG)
