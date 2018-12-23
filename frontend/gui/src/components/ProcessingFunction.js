@@ -2,25 +2,6 @@ import React from 'react';
 import classname from 'classnames'
 import {Header,Menu} from 'semantic-ui-react';
 
-// eslint-disable-next-line
-const functions = [
-    {
-        name :'Załaduj obraz',
-        function : 'load_image'
-    },
-    {
-        name :'Grayscale',
-        function : 'grayscale_luma'
-    },
-    {
-        name :'Binaryzacja',
-        function : 'otsu'
-    },
-    {
-        name :'Erozja',
-        function : 'erosion'
-    },
-];
 
 const displayListFunction = (functions, activeItem, handler,disabled) => functions.map((el) => (
 
@@ -36,12 +17,12 @@ const displayListFunction = (functions, activeItem, handler,disabled) => functio
 ));
 
 const ProcessingFunctions = (props) => {
-    const menuClass = classname('menuCl');
+    const menuClass = classname('functions-menu');
     return (
-        <Menu vertical compact className={menuClass}>
+        <Menu vertical fluid className={menuClass}>
             {displayListFunction(props.functions,props.activeItem, props.onClick, props.disabled)}
         </Menu>
     )
-}
+};
 
 export default ProcessingFunctions;
