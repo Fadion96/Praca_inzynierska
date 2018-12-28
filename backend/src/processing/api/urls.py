@@ -1,8 +1,6 @@
-from django.urls import path
+from .views import ProcessingFunctionViewSet
+from rest_framework.routers import DefaultRouter
 
-from .views import ProcessingFunctionRetrieveView, ProcessingFunctionView
-
-urlpatterns = [
-    path('', ProcessingFunctionView.as_view()),
-    path('<pk>', ProcessingFunctionRetrieveView.as_view())
-]
+router = DefaultRouter()
+router.register(r'', ProcessingFunctionViewSet, basename='functions')
+urlpatterns = router.urls

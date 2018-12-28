@@ -1,7 +1,7 @@
 from django.urls import path
 
-from processing.views import ProcessingView
+from processing.views import handle_processing
 
 urlpatterns = [
-    path('', ProcessingView.as_view()),
+    path('', handle_processing),
 ]

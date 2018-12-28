@@ -129,7 +129,7 @@ def dilation(img, structuring_element, anchor):
                                 struct_x_start:struct_x_end]
                 window = img[y_start:y_end, x_start:x_end] \
                          & struct_window
-                result[i, j] = np.max(window[np.where(struct_window == 1)])
+                result[i, j] = np.max(window[np.where(struct_window == 1)]) * 255
 
     return result
 

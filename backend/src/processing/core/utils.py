@@ -85,14 +85,13 @@ def convolution_channel(img, kernel):
         divisor = 1
     padding = (kernel_height - 1) // 2
     padded_img = cv2.copyMakeBorder(img, padding, padding, padding, padding, cv2.BORDER_REPLICATE)
-    result = np.zeros(img.shape, dtype="float32")
+    result = np.zeros(img.shape, dtype="float16")
     for y in range(padding, height + padding):
         for x in range(padding, width + padding):
             window = padded_img[y - padding: y + padding + 1, x - padding: x + padding + 1]
             value = np.sum(window * kernel) // divisor
             result[y - padding, x - padding] = value
-    result = rescale_intensity(result, in_range=(0, 255))
-    result = (result * 255).astype("uint8")
+    result = rescale_intensity(result, in_range=(0, 255), out_range='uint8').astype("uint8")
     return result
 
 
