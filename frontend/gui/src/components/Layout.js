@@ -9,22 +9,24 @@ import {
 const AppMenu = (props) => {
     const appMenuClass = classnames('app_menu');
     return(
-            <Menu inverted icon borderless={true} className={appMenuClass}>
-                <Container>
-                    <Menu.Item as='a' header>
+            <Menu inverted icon className={appMenuClass}>
+                <Container fluid>
+                    <Menu.Item header>
                         Aplikacja przetwarzająca obrazy
                     </Menu.Item>
                     <Menu.Item>
                         <label className="custom-file-upload">
-                        <input type='file' accept='image/*' onChange={props.imagesHandler}/>
+                            <input type='file' accept='image/*' onChange={props.imagesHandler}/>
                             <i className="file image outline icon"/> Załaduj obraz
-                    </label>
+                        </label>
                     </Menu.Item>
-                     <Menu.Item>
-                         <Button
-                            content='Click'
+                    <Menu.Item>
+                        <Button
+                            inverted
+                            basic
+                            content='Wykonaj algorytm'
                             onClick={props.handleSend}
-                         />
+                        />
                     </Menu.Item>
                 </Container>
             </Menu>

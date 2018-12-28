@@ -55,8 +55,9 @@ def do_operation(img_key, path, functions):
                 tmp.append((image, path))
         params = operation.get("params")
         if params:
-            if type(params[0]) is list:
-                params[0] = np.array(params[0], dtype="int")
+            for param in range(len(params)):
+                if type(params[param]) is list:
+                    params[param] = np.array(params[param], dtype="int")
             res = functions[func](*images, *params)
         else:
             res = functions[func](*images)
@@ -71,6 +72,9 @@ def do_algorithm(path):
     ret_image = list(images - ad_keys)
     if len(ret_image) == 1:
         do_operation(ret_image[0], path, functions)
+        return path.get("nodes").get(ret_image[0])
+    else:
+        return None
 
-    return path.get("nodes").get(ret_image[0])
+
 

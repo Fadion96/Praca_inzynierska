@@ -1,13 +1,11 @@
-from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework import viewsets
 from processing.models import ProcessingFunction
 from .serializers import ProcessingFunctionSerializer
 
 
-class ProcessingFunctionView(ListAPIView):
-    queryset = ProcessingFunction.objects.all()
+class ProcessingFunctionViewSet(viewsets.ModelViewSet):
+    """
+    A viewset for viewing and editing user instances.
+    """
     serializer_class = ProcessingFunctionSerializer
-
-
-class ProcessingFunctionRetrieveView(RetrieveAPIView):
     queryset = ProcessingFunction.objects.all()
-    serializer_class = ProcessingFunctionSerializer
