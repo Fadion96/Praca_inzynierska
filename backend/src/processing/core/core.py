@@ -1,7 +1,11 @@
 import inspect
 import multiprocessing.pool
-import numpy as np
 
+import networkx as nx
+import numpy as np
+import matplotlib.pyplot as plt
+
+from networkx.readwrite import json_graph
 from processing.core import algorithms as alg
 from processing.core.utils import from_base64
 
@@ -64,17 +68,59 @@ def do_operation(img_key, path, functions):
         path.get("nodes")[img_key] = res
 
 
-def do_algorithm(path):
-    functions = dict_functions(alg)
-    load_sources(path)
+def check_adjacency(path):
     images = set(path.get("nodes").keys())
     ad_keys = set(path.get("adjacency").keys())
     ret_image = list(images - ad_keys)
     if len(ret_image) == 1:
-        do_operation(ret_image[0], path, functions)
-        return path.get("nodes").get(ret_image[0])
+        return True
     else:
-        return None
+        return False
 
 
+def isCyclicUtil(v, visited, recStack, adjacency_list):
+    visited[v] = True
+    recStack[v] = True
 
+    for neighbour in adjacency_list[v]:
+        if not visited[neighbour]:
+            if isCyclicUtil(neighbour, visited, recStack, adjacency_list):
+                return True
+        elif recStack[neighbour]:
+            return True
+    recStack[v] = False
+    return False
+
+
+def check_DAG(path):
+    images = sorted(list(path.get("nodes").keys()))
+    adjacency = path.get("adjacency")
+    adjacency_list = [[] for i in range(len(images))]
+    images_dict = {x: index for index, x in enumerate(images)}
+    for key in adjacency:
+        for value in adjacency[key]:
+            adjacency_list[images_dict[key]].append(images_dict[value])
+    visited = [False] * len(images)
+    rec_stack = [False] * len(images)
+    for node in range(len(images)):
+        if not visited[node]:
+            if isCyclicUtil(node, visited, rec_stack, adjacency_list):
+                return True
+    return False
+
+
+def get_result_image_key(path):
+    images = set(path.get("nodes").keys())
+    ad_keys = set(path.get("adjacency").keys())
+    ret_image = list(images - ad_keys)
+    return ret_image[0]
+
+
+def do_algorithm(path):
+    functions = dict_functions(alg)
+    load_sources(path)
+    result_image = get_result_image_key(path)
+    do_operation(result_image, path, functions)
+    return path.get("nodes").get(result_image)
+
+# TODO:ADD BILINEAR TO MULTI,

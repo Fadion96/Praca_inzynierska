@@ -28,6 +28,15 @@ const AppMenu = (props) => {
                             onClick={props.handleSend}
                         />
                     </Menu.Item>
+                     <Menu.Item>
+                        <Button
+                            inverted
+                            basic
+                            content='Wyczyść'
+                            color='red'
+                            onClick={props.handleDelete}
+                        />
+                    </Menu.Item>
                 </Container>
             </Menu>
     );
