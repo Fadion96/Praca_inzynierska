@@ -8,7 +8,7 @@ import {
     Button,
     Container,
     Dimmer, Form,
-    Grid,
+    Grid, Header,
     Icon,
     Image,
     Loader,
@@ -50,7 +50,6 @@ class App extends Component {
         disabled: true,
         lines: [],
         imgs: [],
-        centre: [],
         style: {
             height: "1000%"
         },
@@ -59,9 +58,12 @@ class App extends Component {
         modalForm: null
     };
 
-    displayDivs = (divList) => divList.map((el) => (
-        el.div
-    ));
+    displayDivs = (divList) => divList.map((el) => {
+            if (el !== undefined) {
+                return el.div
+            }
+        }
+    );
 
     displayLines = (linesList) => linesList.map((el) => (
         el.line
@@ -102,7 +104,6 @@ class App extends Component {
         this.handle2Close();
     };
 
-
     encodeImage = (e) => {
         let file = e.target.files[0];
         let fileData = new FileReader();
@@ -119,12 +120,12 @@ class App extends Component {
                 id={["img_" + number]}
                 onClick={this.processClick}
                 style={{
-                    top: [(inputCount - 1) * 150 + 25 + "px"]
+                    top: [(inputCount - 1) * 100 + 25 + "px"]
                 }}>
-                {"Obraz " + number}
+                {"Obraz " + number + "\nimg_" + number}
             </div>;
         image.x = 75;
-        image.y = (inputCount - 1) * 150 + 50;
+        image.y = (inputCount - 1) * 100 + 55;
         this.setState(prevState => ({
             ...prevState,
             imageCounter: number + 1,
@@ -133,8 +134,13 @@ class App extends Component {
         }));
     };
 
+
     getDivCenter = (name) => {
         return this.state.imgs.find(el => el.name === name);
+    };
+
+    getDivIndex = (name) => {
+        return this.state.imgs.findIndex(el => el.name === name);
     };
 
     getFunction = (funct) => {
@@ -153,6 +159,7 @@ class App extends Component {
             }
         }
     };
+
     getInput = (img_key) => {
         let inputs = this.state.path.inputs;
         for (let input in inputs) {
@@ -162,6 +169,15 @@ class App extends Component {
         }
     };
 
+    inInput = (input) => {
+        let inputs = this.state.path.inputs;
+        for (let inp in inputs) {
+            if (inputs[inp] === input) {
+                return true;
+            }
+        }
+        return false;
+    };
     addProcess = (e) => {
         if (this.state.activeItem != null) {
             let operation = this.getFunction(this.state.activeItem);
@@ -169,7 +185,7 @@ class App extends Component {
             let operationCount = this.state.operationCounter;
             const xPosition = e.pageX - e.target.offsetLeft + e.target.scrollLeft;
             const yPosition = e.pageY - e.target.offsetTop + e.target.scrollTop;
-
+            let lastDivKey = this.state.imgs.slice(parseInt("-1")).pop().name;
             let image = {};
             image.name = "img_" + number;
             image.div =
@@ -179,10 +195,10 @@ class App extends Component {
                     id={["img_" + number]}
                     onClick={this.processClick}
                     style={{
-                        top: [yPosition - 25 + "px"],
+                        top: [yPosition - 30 + "px"],
                         left: [xPosition - 50 + "px"]
                     }}>
-                    {operation.name}
+                    {operation.name + "\nimg_" + number}
                 </div>;
             image.x = xPosition;
             image.y = yPosition;
@@ -195,7 +211,7 @@ class App extends Component {
                     ...prevState.path,
                     adjacency: {
                         ...prevState.path.adjacency,
-                        ["img_" + (number - 1)]: ["img_" + number]
+                        [lastDivKey]: ["img_" + number]
                     },
                     nodes: {
                         ...prevState.path.nodes,
@@ -205,7 +221,7 @@ class App extends Component {
                         ...prevState.path.operations,
                         ["operation_" + operationCount]: {
                             operation_name: operation.function,
-                            from: ["img_" + (number - 1)],
+                            from: [lastDivKey],
                             to: "img_" + number,
                             "params": JSON.parse(operation.params)
                         }
@@ -233,20 +249,20 @@ class App extends Component {
             path: this.state.path
         })
             .then(res => {
-                this.setState({activeDimmer: false, modalOpen: true, image: "data:image/jpeg;base64," + res.data.ret});
+                this.setState({activeDimmer: false, modalOpen: true, image: "data:image/png;base64," + res.data.ret});
             }).catch(error => {
             this.setState({activeDimmer: false});
             alert(error.response.data.error)
         })
 
     };
+
     handleClose = () => {
         this.setState({modalOpen: false})
     };
     handle2Close = () => {
         this.setState({modal2Open: false})
     };
-
     processClick = (e) => {
         let op = null;
         let form = null;
@@ -301,14 +317,16 @@ class App extends Component {
         };
 
         return (
-            <Form label={"Edytuj operację:"} onSubmit={this.handleSubmit.bind(this, operation)}>
+            <Form label={"Edytuj operację:"}>
                 <Form.Group>
                     {imageForm(operation.from, options, funct.number_of_images)}
                 </Form.Group>
                 <Form.Group>
                     {paramForm(operation.params, options, funct.number_of_parameters)}
                 </Form.Group>
-                <Form.Button basic color='black' content='Edytuj'/>
+                <Form.Button basic color='black' onClick={this.handleSubmit.bind(this, operation)} content='Edytuj'/>
+                <Form.Button basic color='red' onClick={this.deleteImage.bind(this, operation)}
+                             content='Usuń operacje'/>
             </Form>
         )
     };
@@ -317,14 +335,14 @@ class App extends Component {
         return (
             <Grid>
                 <Grid.Row>
-                    <Image size={'medium'} name='form' src={"data:image/jpeg;base64," + input.source}/>
+                    <Image size={'medium'} name='form' src={"data:image/png;base64," + input.source}/>
                 </Grid.Row>
                 <Grid.Row>
-
                     <label className="custom-file-change">
                         <input type='file' accept='image/*' onChange={this.changeImage.bind(this, input)}/>
                         <i className="file image outline icon"/> Załaduj obraz
                     </label>
+                    <Button basic color='red' onClick={this.deleteImage.bind(this, input)} content='Usuń obraz'/>
                 </Grid.Row>
             </Grid>
 
@@ -398,7 +416,6 @@ class App extends Component {
         let lines = [];
         let counter = 1;
         let adjacencies = this.state.path.adjacency;
-        console.log(this.state.lines);
         for (let adjacency in adjacencies) {
             for (let endNode in adjacencies[adjacency]) {
                 let startDiv = this.getDivCenter(adjacency);
@@ -429,6 +446,135 @@ class App extends Component {
         })
     };
 
+    deletePath = (e) => {
+        this.setState({
+            imageCounter: 1,
+            inputCounter: 1,
+            operationCounter: 1,
+            lineCounter: 1,
+            path: {
+                adjacency: {},
+                nodes: {},
+                operations: {},
+                inputs: {}
+            },
+            disabled: true,
+            lines: [],
+            imgs: [],
+        });
+    };
+
+    deleteImage = (operation, e) => {
+        let img_key = operation.to;
+        if (this.isInAdjacency(img_key)) {
+            alert("Nie można usunąć operacji")
+        }
+        else {
+            if (this.inInput(operation)) {
+                let inputLength = Object.keys(this.state.path.inputs).length;
+                for (let input in this.state.path.inputs) {
+                    if (this.state.path.inputs[input] === operation) {
+                        let divIndex = this.getDivIndex(img_key);
+                        let nodes = this.deleteFromNodes(img_key);
+                        let inputs = this.deleteFromInputs(input);
+                        let images = this.deleteFromDivs(JSON.stringify(divIndex));
+                        if (inputLength === 1) {
+                            this.setState(prevState => ({
+                                ...prevState,
+                                path: {
+                                    ...prevState.path,
+                                    nodes: nodes,
+                                    inputs: inputs,
+                                },
+                                imgs: images,
+                                disabled: true
+                            }));
+                        } else {
+                            this.setState(prevState => ({
+                                ...prevState,
+                                path: {
+                                    ...prevState.path,
+                                    nodes: nodes,
+                                    inputs: inputs
+                                },
+                                imgs: images,
+                            }));
+                        }
+                    }
+                }
+            }
+            else {
+                for (let op in this.state.path.operations) {
+                    if (this.state.path.operations[op] === operation) {
+                        let divIndex = this.getDivIndex(img_key);
+                        let nodes = this.deleteFromNodes(img_key);
+                        let operations = this.deleteFromOperations(op);
+                        let images = this.deleteFromDivs(JSON.stringify(divIndex));
+                        this.setState(prevState => ({
+                            ...prevState,
+                            path: {
+                                ...prevState.path,
+                                nodes: nodes,
+                                operations: operations
+                            },
+                            imgs: images,
+                        }), () =>{this.fixAdjacencies();});
+
+                    }
+                }
+            }
+        }
+        this.handle2Close();
+    };
+
+    deleteFromNodes(img_key) {
+        let nodes = {};
+        for (let node in this.state.path.nodes) {
+            if (node !== img_key) {
+                nodes[node] = this.deepCopy(this.state.path.nodes[node]);
+            }
+        }
+        return nodes;
+    }
+
+    deleteFromInputs(input) {
+        let inputs = {};
+        for (let inp in this.state.path.inputs) {
+            if (inp !== input) {
+                inputs[inp] = this.deepCopy(this.state.path.inputs[inp]);
+            }
+        }
+        return inputs;
+    }
+    deleteFromOperations(operation) {
+        let operations = {};
+        for (let op in this.state.path.operations) {
+            if (op !== operation) {
+                operations[op] = this.deepCopy(this.state.path.operations[op]);
+            }
+        }
+        return operations;
+    }
+
+    deleteFromDivs(divIndex) {
+        let divs = [];
+        for (let div in this.state.imgs) {
+            if (divIndex !== div) {
+                divs.push(this.state.imgs[div]);
+            }
+        }
+        return divs;
+    }
+
+    isInAdjacency = (img_key) => {
+        let adjacencies = this.state.path.adjacency;
+        for (let adjacency in adjacencies) {
+            if (adjacency === img_key) {
+                return true
+            }
+        }
+        return false
+    };
 
     render() {
         const style = classname('app-container');
@@ -440,6 +586,7 @@ class App extends Component {
                     <AppMenu
                         imagesHandler={this.encodeImage}
                         handleSend={this.sendPath}
+                        handleDelete={this.deletePath}
                     />
                 </Container>
                 <Container fluid={true}>
@@ -451,11 +598,21 @@ class App extends Component {
                             width={2}
                             style={{padding: 0}}
                         >
-                            <FunctionsList
-                                disabled={this.state.disabled}
-                                active={this.state.activeItem}
-                                functions={this.state.functions}
-                                handleItemClick={this.handleItemClick}/>
+                            <Dimmer.Dimmable dimmed={this.state.disabled}>
+                                <FunctionsList
+                                    disabled={this.state.disabled}
+                                    active={this.state.activeItem}
+                                    functions={this.state.functions}
+                                    handleItemClick={this.handleItemClick}/>
+                            </Dimmer.Dimmable>
+                            <Dimmer active={this.state.disabled}>
+                                <Header as='h2' icon inverted>
+                                    <Icon name='upload'/>
+                                </Header>
+                                <Header as='h5' inverted>
+                                    Załaduj obraz, aby odblokować menu
+                                </Header>
+                            </Dimmer>
                         </Grid.Column>
                         <Grid.Column
                             width={14}
@@ -504,7 +661,7 @@ class App extends Component {
                         <Image name='test' src={this.state.image}/>
                     </Modal.Content>
                     <Modal.Actions>
-                        <a className="download-button" href={this.state.image} download={'result.jpg'}>
+                        <a className="download-button" href={this.state.image} download={'result.png'}>
                             <i className="file image outline icon"/> Pobierz obraz
                         </a>
                         <Button color='green' onClick={this.handleClose} inverted>
@@ -529,8 +686,7 @@ class App extends Component {
             </div>
         );
     }
-
-
 }
 
 export default App;
+// TODO: ADD SAVING ALG, LOADING ALG, ADDING OWN ALG
