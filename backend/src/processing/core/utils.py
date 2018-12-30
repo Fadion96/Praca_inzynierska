@@ -22,6 +22,12 @@ def timeit(method):
 
     return timed
 
+def load_image(path) -> np.ndarray:
+    img = cv2.imread(path)
+    if isinstance(img, np.ndarray):
+        return img
+    else:
+        raise TypeError("Błąd, nie można załadować obrazka")
 
 def to_image_string(image_filepath):
     with open(image_filepath, 'rb') as image:
@@ -96,8 +102,8 @@ def convolution_channel(img, kernel):
 
 
 def multiplication_channel(img, mask):
-    result = img & mask
-    return result
+    result = (img/255) * (mask/255)
+    return result * 255
 
 
 def bilinear_interp(img, x, y):

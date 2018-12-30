@@ -209,10 +209,6 @@ class App extends Component {
                 operationCounter: operationCount + 1,
                 path: {
                     ...prevState.path,
-                    adjacency: {
-                        ...prevState.path.adjacency,
-                        [lastDivKey]: ["img_" + number]
-                    },
                     nodes: {
                         ...prevState.path.nodes,
                         ["img_" + number]: null
@@ -230,7 +226,7 @@ class App extends Component {
                 disabled: false,
                 imgs: [...prevState.imgs, image],
             }), () => {
-                this.fixLines();
+                this.fixAdjacencies();
             });
         }
     };
