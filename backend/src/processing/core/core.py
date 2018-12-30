@@ -43,6 +43,7 @@ def do_operation(img_key, path, functions):
     if path.get("nodes").get(img_key) is None:
         operation = get_operation(img_key, path)
         func = operation.get("operation_name")
+        print(func)
         images = []
         tmp = []
         for image in operation.get("from"):
@@ -62,6 +63,7 @@ def do_operation(img_key, path, functions):
             for param in range(len(params)):
                 if type(params[param]) is list:
                     params[param] = np.array(params[param], dtype="int")
+                    print(params[param])
             res = functions[func](*images, *params)
         else:
             res = functions[func](*images)
