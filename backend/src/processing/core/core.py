@@ -1,11 +1,6 @@
 import inspect
 import multiprocessing.pool
-
-import networkx as nx
 import numpy as np
-import matplotlib.pyplot as plt
-
-from networkx.readwrite import json_graph
 from processing.core import algorithms as alg
 from processing.core.utils import from_base64
 
@@ -27,8 +22,11 @@ def load_sources(path):
     for inp in inputs:
         source = inputs.get(inp).get("source")
         to = inputs.get(inp).get("to")
-        img = from_base64(source)
-        path.get("nodes")[to] = img
+        if source is not None:
+            img = from_base64(source)
+            path.get("nodes")[to] = img
+        else:
+            raise TypeError(to + " - Nie załadowano obrazu po wczytaniu algorytmu")
 
 
 def get_operation(img_key, path):
@@ -118,11 +116,11 @@ def get_result_image_key(path):
     return ret_image[0]
 
 
-def do_algorithm(path):
+def do_algorithm(path, user_functions):
     functions = dict_functions(alg)
+    functions.update(user_functions)
     load_sources(path)
     result_image = get_result_image_key(path)
     do_operation(result_image, path, functions)
     return path.get("nodes").get(result_image)
 
-# TODO:ADD BILINEAR TO MULTI,
