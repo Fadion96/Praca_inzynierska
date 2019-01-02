@@ -15,24 +15,34 @@ import {
     Modal,
 } from "semantic-ui-react";
 import axios from "axios";
+import {saveAs} from 'file-saver';
 
 class App extends Component {
     constructor(props) {
         super(props);
         this.svg_ref = React.createRef();
     }
-
     componentDidMount() {
+        axios.get('http://127.0.0.1:8000/process/id')
+            .then(res => {
+                this.setState({
+                    session_id: res.data.id
+                });
+            }).catch(error => {
+            alert(error)
+        });
         axios.get('http://127.0.0.1:8000/api/')
             .then(res => {
                 this.setState({
                     functions: res.data
                 });
-                console.log(res.data);
-            })
+            }).catch(error => {
+            alert(error)
+        })
     }
 
     state = {
+        session_id: null,
         image: null,
         activeItem: null,
         activeDimmer: false,
@@ -45,8 +55,9 @@ class App extends Component {
             adjacency: {},
             nodes: {},
             operations: {},
-            inputs: {}
+            inputs: {},
         },
+        user_functions: [],
         disabled: true,
         lines: [],
         imgs: [],
@@ -58,12 +69,9 @@ class App extends Component {
         modalForm: null
     };
 
-    displayDivs = (divList) => divList.map((el) => {
-            if (el !== undefined) {
-                return el.div
-            }
-        }
-    );
+    displayDivs = (divList) => divList.map((el) => (
+        el.div
+    ));
 
     displayLines = (linesList) => linesList.map((el) => (
         el.line
@@ -104,6 +112,31 @@ class App extends Component {
         this.handle2Close();
     };
 
+    uploadFile = (e) => {
+        let file = e.target.files[0];
+        let formData = new FormData();
+        formData.append('file', file);
+        formData.append('session_id', this.state.session_id);
+        axios.post('http://127.0.0.1:8000/process/upload',
+            formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            }
+        ).then(res => {
+            console.log(res.data.function_id);
+            console.log(res.data.function);
+            this.setState(prevState => ({
+                ...prevState,
+                user_functions: [...prevState.user_functions, res.data.function_id],
+                functions: [...prevState.functions, res.data.function],
+            }));
+        })
+            .catch(error => {
+                alert(error.response.data.error)
+            })
+    };
+
     encodeImage = (e) => {
         let file = e.target.files[0];
         let fileData = new FileReader();
@@ -122,7 +155,7 @@ class App extends Component {
                 style={{
                     top: [(inputCount - 1) * 100 + 25 + "px"]
                 }}>
-                {"Obraz " + number + "\nimg_" + number}
+                {"Obraz " + inputCount + "\nimg_" + number}
             </div>;
         image.x = 75;
         image.y = (inputCount - 1) * 100 + 55;
@@ -134,7 +167,6 @@ class App extends Component {
         }));
     };
 
-
     getDivCenter = (name) => {
         return this.state.imgs.find(el => el.name === name);
     };
@@ -142,6 +174,7 @@ class App extends Component {
     getDivIndex = (name) => {
         return this.state.imgs.findIndex(el => el.name === name);
     };
+
 
     getFunction = (funct) => {
         return this.state.functions.find(el => el.name === funct)
@@ -178,14 +211,29 @@ class App extends Component {
         }
         return false;
     };
+
     addProcess = (e) => {
         if (this.state.activeItem != null) {
             let operation = this.getFunction(this.state.activeItem);
+            console.log(operation);
             let number = this.state.imageCounter;
             let operationCount = this.state.operationCounter;
             const xPosition = e.pageX - e.target.offsetLeft + e.target.scrollLeft;
             const yPosition = e.pageY - e.target.offsetTop + e.target.scrollTop;
-            let lastDivKey = this.state.imgs.slice(parseInt("-1")).pop().name;
+            let number_of_operation_inputs = operation.number_of_images;
+            let lastDivKeys = [];
+            if (number <= number_of_operation_inputs) {
+                let divs = this.state.imgs;
+                for (let i = 0; i < number_of_operation_inputs; i++) {
+                    lastDivKeys.push(divs[i % (number - 1)].name);
+                }
+            }
+            else {
+                let divs = this.state.imgs.slice(-number_of_operation_inputs)
+                for (let i = 0; i < number_of_operation_inputs; i++) {
+                    lastDivKeys.push(divs[i].name);
+                }
+            }
             let image = {};
             image.name = "img_" + number;
             image.div =
@@ -217,7 +265,7 @@ class App extends Component {
                         ...prevState.path.operations,
                         ["operation_" + operationCount]: {
                             operation_name: operation.function,
-                            from: [lastDivKey],
+                            from: lastDivKeys,
                             to: "img_" + number,
                             "params": JSON.parse(operation.params)
                         }
@@ -234,7 +282,6 @@ class App extends Component {
     handleScroll = (e) => {
         this.svg_ref.current.scrollTop = e.target.scrollTop;
     };
-
     handleItemClick = (e, {name}) => {
         this.setState({activeItem: name});
     };
@@ -242,7 +289,8 @@ class App extends Component {
     sendPath = (e) => {
         this.setState({activeDimmer: true});
         axios.post('http://127.0.0.1:8000/process/', {
-            path: this.state.path
+            path: this.state.path,
+            user_functions: this.state.user_functions
         })
             .then(res => {
                 this.setState({activeDimmer: false, modalOpen: true, image: "data:image/png;base64," + res.data.ret});
@@ -256,9 +304,11 @@ class App extends Component {
     handleClose = () => {
         this.setState({modalOpen: false})
     };
+
     handle2Close = () => {
         this.setState({modal2Open: false})
     };
+
     processClick = (e) => {
         let op = null;
         let form = null;
@@ -273,7 +323,6 @@ class App extends Component {
 
         this.setState({modalForm: form, modal2Open: true})
     };
-
     createImageOptions = (img_key) => {
         let options = [];
         let images = this.state.path.nodes;
@@ -284,7 +333,6 @@ class App extends Component {
         }
         return options
     };
-
     deepCopy = (value) => {
         return JSON.parse(JSON.stringify(value));
     };
@@ -514,7 +562,9 @@ class App extends Component {
                                 operations: operations
                             },
                             imgs: images,
-                        }), () =>{this.fixAdjacencies();});
+                        }), () => {
+                            this.fixAdjacencies();
+                        });
 
                     }
                 }
@@ -542,6 +592,7 @@ class App extends Component {
         }
         return inputs;
     }
+
     deleteFromOperations(operation) {
         let operations = {};
         for (let op in this.state.path.operations) {
@@ -572,6 +623,123 @@ class App extends Component {
         return false
     };
 
+    saveAlgorithm = () => {
+        axios.post('http://127.0.0.1:8000/process/check', {
+            path: this.state.path,
+        })
+            .then(res => {
+                console.log(res.data);
+                let inputs = res.data.inputs;
+                for (let input in inputs) {
+                    inputs[input].source = null;
+                }
+                console.log(res.data);
+                const file = new Blob([JSON.stringify(res.data)], {type: 'text/plain'});
+                saveAs(file, "algorithm.json")
+            })
+            .catch(error => {
+                alert(error.response.data.error)
+            })
+
+    };
+
+    uploadJson = (e) => {
+        let file = e.target.files[0];
+        let fileData = new FileReader();
+        fileData.onloadend = (ev) => {
+            const content = ev.target.result;
+            let path = JSON.parse(atob(content.split(',')[1]));
+            console.log(path);
+            axios.post('http://127.0.0.1:8000/process/check', {
+                path: path,
+            })
+                .then(res => {
+                    this.setState(prevState => ({
+                        ...prevState,
+                        path: res.data
+                    }), () => {
+                        this.createInputs();
+                        this.createOperations()
+                    });
+
+                })
+                .catch(error => {
+                    alert(error.response.data.error)
+                })
+
+        };
+        fileData.readAsDataURL(file);
+    };
+
+    createInputs = () => {
+        let inputs = this.state.path.inputs;
+        let divs = [];
+        let number = 1;
+        for (let input in inputs) {
+            let image = {};
+            image.name = inputs[input].to;
+            image.div =
+                <div
+                    className={"input_image_div"}
+                    key={inputs[input].to}
+                    id={inputs[input].to}
+                    onClick={this.processClick}
+                    style={{
+                        top: [(number - 1) * 100 + 25 + "px"]
+                    }}>
+                    {"Obraz " + number + "\n" + inputs[input].to}
+                </div>;
+            image.x = 75;
+            image.y = (number - 1) * 100 + 55;
+            divs.push(image);
+            number++
+        }
+        this.setState({
+            imgs: divs,
+            inputCounter: number, // co jak się usunie - do poprawki
+            disabled: false
+        })
+    };
+
+    createOperations = () => {
+        let operations = this.state.path.operations;
+        console.log(operations);
+        let divs = [];
+        let number = 1;
+        for (let operation in operations){
+            let func = this.getFunctionByFunction(operations[operation].operation_name)
+            let image = {};
+            image.name = operations[operation].to;
+            image.div =
+                <div
+                    className={func.function + "_image_div"}
+                    key={operations[operation].to}
+                    id={operations[operation].to}
+                    onClick={this.processClick}
+                    style={{
+                        top: [(number - 1) * 100 + 25 + "px"],
+                        left: [225 + "px"]
+                    }}>
+                    {func.name + "\n" + operations[operation].operation_name}
+                </div>;
+            image.x = 275;
+            image.y = (number - 1) * 100 + 55;
+            divs.push(image);
+            number++
+        }
+        this.setState(prevState => ({
+            ...prevState,
+            imgs: [...prevState.imgs, ...divs],
+            operationCounter: number, // co jak się usunie - do poprawki
+            imageCounter: number, // co jak się usunie - do poprawki
+            disabled: false
+        }), () => {
+            this.fixAdjacencies();
+        });
+
+    };
+
+
     render() {
         const style = classname('app-container');
         const gridClass = classname('app-grid');
@@ -583,6 +751,9 @@ class App extends Component {
                         imagesHandler={this.encodeImage}
                         handleSend={this.sendPath}
                         handleDelete={this.deletePath}
+                        fileHandler={this.uploadFile}
+                        saveAlgorithm={this.saveAlgorithm}
+                        jsonHandler={this.uploadJson}
                     />
                 </Container>
                 <Container fluid={true}>
@@ -685,4 +856,3 @@ class App extends Component {
 }
 
 export default App;
-// TODO: ADD SAVING ALG, LOADING ALG, ADDING OWN ALG
