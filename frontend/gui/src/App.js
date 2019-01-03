@@ -22,6 +22,7 @@ class App extends Component {
         super(props);
         this.svg_ref = React.createRef();
     }
+
     componentDidMount() {
         axios.get('http://127.0.0.1:8000/process/id')
             .then(res => {
@@ -124,8 +125,6 @@ class App extends Component {
                 }
             }
         ).then(res => {
-            console.log(res.data.function_id);
-            console.log(res.data.function);
             this.setState(prevState => ({
                 ...prevState,
                 user_functions: [...prevState.user_functions, res.data.function_id],
@@ -215,7 +214,6 @@ class App extends Component {
     addProcess = (e) => {
         if (this.state.activeItem != null) {
             let operation = this.getFunction(this.state.activeItem);
-            console.log(operation);
             let number = this.state.imageCounter;
             let operationCount = this.state.operationCounter;
             const xPosition = e.pageX - e.target.offsetLeft + e.target.scrollLeft;
@@ -379,7 +377,7 @@ class App extends Component {
         return (
             <Grid>
                 <Grid.Row>
-                    <Image size={'medium'} name='form' src={"data:image/png;base64," + input.source}/>
+                    <Image bordered size={'medium'} name='form' src={"data:image/png;base64," + input.source}/>
                 </Grid.Row>
                 <Grid.Row>
                     <label className="custom-file-change">
@@ -628,12 +626,10 @@ class App extends Component {
             path: this.state.path,
         })
             .then(res => {
-                console.log(res.data);
                 let inputs = res.data.inputs;
                 for (let input in inputs) {
                     inputs[input].source = null;
                 }
-                console.log(res.data);
                 const file = new Blob([JSON.stringify(res.data)], {type: 'text/plain'});
                 saveAs(file, "algorithm.json")
             })
@@ -649,19 +645,18 @@ class App extends Component {
         fileData.onloadend = (ev) => {
             const content = ev.target.result;
             let path = JSON.parse(atob(content.split(',')[1]));
-            console.log(path);
+
             axios.post('http://127.0.0.1:8000/process/check', {
                 path: path,
             })
                 .then(res => {
-                    this.setState(prevState => ({
-                        ...prevState,
-                        path: res.data
-                    }), () => {
-                        this.createInputs();
-                        this.createOperations()
-                    });
-
+                     this.setState(prevState => ({
+                         ...prevState,
+                         path: this.fixPath(res.data)
+                     }), () => {
+                         this.createInputs();
+                         this.createOperations()
+                     });
                 })
                 .catch(error => {
                     alert(error.response.data.error)
@@ -669,6 +664,91 @@ class App extends Component {
 
         };
         fileData.readAsDataURL(file);
+    };
+
+    fixPath = (path) => {
+        let imageCount = 1;
+        let inputCount = 1;
+        let operationCount = 1;
+        let nodes = {};
+        let inputs = {};
+        let operations = {};
+        for (let image in path.nodes) {
+            let newKey = "img_" + imageCount;
+            if (image === newKey) {
+                nodes[newKey] = path.nodes[image];
+                for (let inp in path.inputs) {
+                    if (image === path.inputs[inp].to) {
+                        inputs[("input_" + inputCount)] = path.inputs[inp];
+                        delete path.inputs[inp];
+                        inputCount++;
+                    }
+                }
+                for (let op in path.operations) {
+                    if (image === path.operations[op].to) {
+                        operations[("operation_" + operationCount)] = path.operations[op];
+                        delete path.operations[op];
+                        operationCount++;
+                    }
+                }
+                imageCount++;
+
+            }
+            else {
+                nodes[newKey] = path.nodes[image];
+                for (let inp in path.inputs) {
+                    if (image === path.inputs[inp].to) {
+                        inputs[("input_" + inputCount)] = path.inputs[inp];
+                        inputs[("input_" + inputCount)].to = newKey;
+                        for (let op in path.operations) {
+                            for (let key in path.operations[op].from) {
+                                if (path.operations[op].from[key] === image) {
+                                    path.operations[op].from[key] = newKey
+                                }
+                            }
+                        }
+                        for (let op in operations) {
+                            for (let key in operations[op].from) {
+                                if (operations[op].from[key] === image) {
+                                    operations[op].from[key] = newKey
+                                }
+                            }
+                        }
+                        delete path.inputs[inp];
+                        inputCount++;
+                    }
+                }
+                for (let op in path.operations) {
+                    if (image === path.operations[op].to) {
+                        operations[("operation_" + operationCount)] = path.operations[op];
+                        operations[("operation_" + operationCount)].to = newKey;
+                        for (let op in path.operations) {
+                            for (let key in path.operations[op].from) {
+                                if (path.operations[op].from[key] === image) {
+                                    path.operations[op].from[key] = newKey
+                                }
+                            }
+                        }
+                        for (let op in operations) {
+                            for (let key in operations[op].from) {
+                                if (operations[op].from[key] === image) {
+                                    operations[op].from[key] = newKey
+                                }
+                            }
+                        }
+                        delete path.operations[op];
+                        operationCount++;
+                    }
+                }
+                imageCount++;
+            }
+        }
+         this.setState({
+             imageCounter: imageCount,
+             inputCounter: inputCount,
+             operationCounter: operationCount
+         });
+        return {nodes: nodes, inputs: inputs, operations: operations, adjacency: {} }
     };
 
     createInputs = () => {
@@ -696,18 +776,16 @@ class App extends Component {
         }
         this.setState({
             imgs: divs,
-            inputCounter: number, // co jak się usunie - do poprawki
             disabled: false
         })
     };
 
     createOperations = () => {
         let operations = this.state.path.operations;
-        console.log(operations);
         let divs = [];
         let number = 1;
-        for (let operation in operations){
-            let func = this.getFunctionByFunction(operations[operation].operation_name)
+        for (let operation in operations) {
+            let func = this.getFunctionByFunction(operations[operation].operation_name);
             let image = {};
             image.name = operations[operation].to;
             image.div =
@@ -720,7 +798,7 @@ class App extends Component {
                         top: [(number - 1) * 100 + 25 + "px"],
                         left: [225 + "px"]
                     }}>
-                    {func.name + "\n" + operations[operation].operation_name}
+                    {func.name + "\n" + operations[operation].to}
                 </div>;
             image.x = 275;
             image.y = (number - 1) * 100 + 55;
@@ -730,8 +808,6 @@ class App extends Component {
         this.setState(prevState => ({
             ...prevState,
             imgs: [...prevState.imgs, ...divs],
-            operationCounter: number, // co jak się usunie - do poprawki
-            imageCounter: number, // co jak się usunie - do poprawki
             disabled: false
         }), () => {
             this.fixAdjacencies();

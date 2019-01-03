@@ -103,7 +103,7 @@ def convolution_channel(img, kernel):
 
 def multiplication_channel(img, mask):
     result = (img/255) * (mask/255)
-    return result * 255
+    return (result * 255).astype("uint8")
 
 
 def bilinear_interp(img, x, y):

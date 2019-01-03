@@ -2,6 +2,7 @@ import base64
 import inspect
 import os
 import py_compile
+import traceback
 
 import cv2
 from rest_framework.response import Response
@@ -31,6 +32,7 @@ def handle_processing(request):
                 jpg_as_text = base64.b64encode(buffer)
                 return Response({"ret": jpg_as_text})
             except Exception as e:
+                print(traceback.format_exc())
                 return Response({'error': "Błąd: " + e.args[0]}, status=400)
         else:
             return Response({'error': "Cykl w algorytmie"}, status=400)
