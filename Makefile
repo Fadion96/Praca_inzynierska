@@ -8,7 +8,7 @@ install_backend: install_virtualenv setup_database
 install_virtualenv:
 	virtualenv $(ROOT_DIR)/env;
 	source $(ROOT_DIR)/env/bin/activate;
-	pip install -r $(ROOT_DIR)/requirements.txt
+	pip3 install -r $(ROOT_DIR)/requirements.txt
 
 setup_database:
 	cd $(ROOT_DIR)/backend/src; \

@@ -12,6 +12,7 @@ class App extends Component {
     constructor(props) {
         super(props);
         this.svg_ref = React.createRef();
+        this.image_input_ref = React.createRef();
     }
 
     componentDidMount() {
@@ -155,6 +156,7 @@ class App extends Component {
             inputCounter: inputCount + 1,
             imgs: [...prevState.imgs, image],
         }));
+        this.image_input_ref.current.value = '';
     };
 
     getDivCenter = (name) => {
@@ -837,6 +839,7 @@ class App extends Component {
                         fileHandler={this.uploadFile}
                         saveAlgorithm={this.saveAlgorithm}
                         jsonHandler={this.uploadJson}
+                        inputImageRef={this.image_input_ref}
                     />
                 </Container>
                 <Container fluid={true}>

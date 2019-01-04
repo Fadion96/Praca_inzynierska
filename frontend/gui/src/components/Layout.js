@@ -16,7 +16,7 @@ const AppMenu = (props) => {
                 </Menu.Item>
                 <Menu.Item>
                     <label className="custom-file-upload">
-                        <input type='file' accept='image/*' onChange={props.imagesHandler}/>
+                        <input ref={props.inputImageRef} type='file' accept='image/*' onChange={props.imagesHandler}/>
                         <i className="file image outline icon"/> Załaduj obraz
                     </label>
                 </Menu.Item>
