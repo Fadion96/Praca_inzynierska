@@ -26,6 +26,7 @@ class ProcessingFunction(models.Model):
     number_of_images = models.PositiveSmallIntegerField(default=1)
     number_of_parameters = models.PositiveSmallIntegerField(default=0)
     params = models.TextField(blank=True, null=True)
+    type = models.CharField(max_length=10)
 
 
 class UserFunctionManager(models.Manager):

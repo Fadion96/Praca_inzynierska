@@ -65,7 +65,8 @@ def handle_file_upload(request):
                 "function": func.__name__,
                 "number_of_images": number_of_images,
                 "number_of_params": number_of_params,
-                "params": None
+                "params": None,
+                "type": "user"
             }
         })
     else:
