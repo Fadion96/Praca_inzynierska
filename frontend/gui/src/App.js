@@ -361,7 +361,7 @@ class App extends Component {
                 </Form.Group>
                 <Form.Button basic color='black' onClick={this.handleSubmit.bind(this, operation)} content='Edytuj'/>
                 <Form.Button basic color='red' onClick={this.deleteImage.bind(this, operation)}
-                             content='Usuń operacje'/>
+                             content='Usuń operację'/>
             </Form>
         )
     };
@@ -918,7 +918,7 @@ class App extends Component {
                             <i className="file image outline icon"/> Pobierz obraz
                         </Button>
                         <Button color='green' onClick={this.handleClose} inverted>
-                            <Icon name='checkmark'/> Zakmnij
+                            <Icon name='checkmark'/> Zamknij
                         </Button>
                     </Modal.Actions>
                 </Modal>

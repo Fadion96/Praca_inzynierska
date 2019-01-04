@@ -3,6 +3,7 @@ $appMenu: 'app_menu';
 $FuncMenu: 'functions-menu';
 $ImageDiv: 'image_div';
 $InputImageDiv: 'input_image_div';
+$MenuLabel: 'menu-label';
 $color: #3697FC;
 $test: #FF6F26 #9637FC, #B1EF3B, #FE2681;
 
@@ -14,6 +15,10 @@ $test: #FF6F26 #9637FC, #B1EF3B, #FE2681;
   border-radius: 0 !important;
   height: 6vh;
   width: 100%;
+}
+
+.#{$MenuLabel} {
+  border-radius: 0 !important;
 }
 
 .#{$FuncMenu} {
