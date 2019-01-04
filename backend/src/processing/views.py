@@ -28,7 +28,7 @@ def handle_processing(request):
                         func = getattr(module, function_name)
                         user_functions_dict.setdefault(func.__name__, func)
                 image = do_algorithm(path, user_functions_dict)
-                retval, buffer = cv2.imencode('.jpg', image)
+                retval, buffer = cv2.imencode('.png', image)
                 jpg_as_text = base64.b64encode(buffer)
                 return Response({"ret": jpg_as_text})
             except Exception as e:

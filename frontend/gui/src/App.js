@@ -4,16 +4,7 @@ import './scss/index.scss';
 import 'semantic-ui-css/semantic.min.css'
 import AppMenu from './components/Layout';
 import FunctionsList from './containers/FunctionsList';
-import {
-    Button,
-    Container,
-    Dimmer, Form,
-    Grid, Header,
-    Icon,
-    Image,
-    Loader,
-    Modal,
-} from "semantic-ui-react";
+import {Button, Container, Dimmer, Form, Grid, Header, Icon, Image, Loader, Modal,} from "semantic-ui-react";
 import axios from "axios";
 import {saveAs} from 'file-saver';
 
@@ -815,6 +806,22 @@ class App extends Component {
 
     };
 
+    imageToBlob = (image) => {
+        let bytes = atob(image.split(',')[1]);
+        let type = image.split(',')[0].split(':')[1].split(';')[0];
+        let buffer = new ArrayBuffer(bytes.length);
+        let intArray = new Uint8Array(buffer);
+        for (let i = 0; i < bytes.length; i++) {
+            intArray[i] = bytes.charCodeAt(i);
+        }
+        return new Blob([buffer], {type: type})
+    };
+
+
+    downloadFile = () => {
+        const file = this.imageToBlob(this.state.image);
+        saveAs(file, "result.png")
+    };
 
     render() {
         const style = classname('app-container');
@@ -904,9 +911,9 @@ class App extends Component {
                         <Image name='test' src={this.state.image}/>
                     </Modal.Content>
                     <Modal.Actions>
-                        <a className="download-button" href={this.state.image} download={'result.png'}>
+                        <Button className="download-button" onClick={this.downloadFile} inverted>
                             <i className="file image outline icon"/> Pobierz obraz
-                        </a>
+                        </Button>
                         <Button color='green' onClick={this.handleClose} inverted>
                             <Icon name='checkmark'/> Zakmnij
                         </Button>
