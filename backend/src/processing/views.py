@@ -2,21 +2,21 @@ import base64
 import inspect
 import os
 import py_compile
-import traceback
 
 import cv2
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from importlib.machinery import SourceFileLoader
-from processing.core.core import do_algorithm, check_adjacency, check_DAG
+from processing.core.processing import Processing
 from processing.models import ProcessingFunction, UserFunction, Session
 
 
 @api_view(['POST'])
 def handle_processing(request):
     path = request.data.get("path")
-    if check_adjacency(path):
-        if not check_DAG(path):
+    process = Processing(path)
+    if process.has_one_result_image():
+        if not process.has_cycle():
             try:
                 user_functions_keys = request.data.get("user_functions")
                 user_functions_dict = {}
@@ -27,12 +27,12 @@ def handle_processing(request):
                     if hasattr(module, function_name):
                         func = getattr(module, function_name)
                         user_functions_dict.setdefault(func.__name__, func)
-                image = do_algorithm(path, user_functions_dict)
+                process.update_functions(user_functions_dict)
+                image = process.do_algorithm()
                 retval, buffer = cv2.imencode('.png', image)
                 jpg_as_text = base64.b64encode(buffer)
                 return Response({"ret": jpg_as_text})
             except Exception as e:
-                print(traceback.format_exc())
                 return Response({'error': "Błąd: " + e.args[0]}, status=400)
         else:
             return Response({'error': "Cykl w algorytmie"}, status=400)
@@ -83,8 +83,9 @@ def get_session_id(request):
 @api_view(['POST'])
 def check_algorithm(request):
     path = request.data.get("path")
-    if check_adjacency(path):
-        if not check_DAG(path):
+    process = Processing(path)
+    if process.has_one_result_image():
+        if not process.has_cycle():
             return Response(path)
         else:
             return Response(
