@@ -9,7 +9,9 @@ class Processing(object):
     def __init__(self, path):
         self.nodes = path.get("nodes")
         self.operations = path.get("operations")
+        print(self.operations)
         self.inputs = path.get("inputs")
+        print(self.inputs)
         self.adjacency = path.get("adjacency")
         self.functions = self.set_functions()
 

@@ -139,7 +139,7 @@ class Algorithms(object):
     @staticmethod
     def dilation(img, structuring_element, anchor):
         """
-        Fukcja, która na obrazie binarnym wykonuje morfologiczną operację dylacji.
+        Fukncja, która na obrazie binarnym wykonuje morfologiczną operację dylacji.
         :param img: Macierz o wymiarach M x N przedstawiajaca liczbową reprezentacje obrazu binarnego (wartosci {0, 255}).
         :param structuring_element: Element strukturalny - macierz najczęściej kwadratowa określająca zakres w jakim wykonywana jest dylacja.
         :param anchor: Koordynaty punktu w elemencie strukturalnym, na którym to po nałożeniu elementu sktrukturalnego na obraz będzie wykonywana dylacja.
@@ -217,7 +217,7 @@ class Algorithms(object):
     @staticmethod
     def erosion(img, structuring_element, anchor):
         """
-        Fukcja, która na obrazie binarnym wykonuje morfologiczną operację erozji.
+        Funkcja, która na obrazie binarnym wykonuje morfologiczną operację erozji.
         :param img:  Macierz o wymiarach M x N przedstawiajaca liczbową reprezentacje obrazu binarnego (wartosci {0, 255}).
         :param structuring_element: Element strukturalny - macierz najczęściej kwadratowa określająca zakres w jakim wykonywana jest erozja.
         :param anchor: Koordynaty punktu w elemencie strukturalnym, na którym to po nałożeniu elementu sktrukturalnego na obraz będzie wykonywana erozja.
@@ -285,7 +285,7 @@ class Algorithms(object):
     @staticmethod
     def opening(img, structuring_element, anchor):
         """
-        Fukcja, która na obrazie binarnym wykonuje morfologiczną operację otwarcia, czyli wykonania operacji erozji, a nastepnie dylacji na obrazie.
+        Funkcja, która na obrazie binarnym wykonuje morfologiczną operację otwarcia, czyli wykonania operacji erozji, a nastepnie dylacji na obrazie.
         :param img:  Macierz o wymiarach M x N przedstawiajaca liczbową reprezentacje obrazu binarnego (wartosci {0, 255}).
         :param structuring_element: Element strukturalny - macierz najczęściej kwadratowa określająca zakres w jakim wykonywane jest otwarcie.
         :param anchor: Koordynaty punktu w elemencie strukturalnym, na którym to po nałożeniu elementu sktrukturalnego na obraz będzie wykonywane otwarcie.
@@ -296,7 +296,7 @@ class Algorithms(object):
     @staticmethod
     def closing(img, structuring_element, anchor):
         """
-        Fukcja, która na obrazie binarnym wykonuje morfologiczną operację otwarcia, czyli wykonania operacji dylacji, a nastepnie erozji na obrazie.
+        Funkcja, która na obrazie binarnym wykonuje morfologiczną operację otwarcia, czyli wykonania operacji dylacji, a nastepnie erozji na obrazie.
         :param img:  Macierz o wymiarach M x N przedstawiajaca liczbową reprezentacje obrazu binarnego (wartosci {0, 255}).
         :param structuring_element: Element strukturalny - macierz najczęściej kwadratowa określająca zakres w jakim wykonywane jest domkniecie.
         :param anchor: Koordynaty punktu w elemencie strukturalnym, na którym to po nałożeniu elementu sktrukturalnego na obraz będzie wykonywane domkniecie.
@@ -307,9 +307,9 @@ class Algorithms(object):
     @staticmethod
     def hit_miss(img, structuring_element, anchor):
         """
-        Fukcja, która na obrazie binarnym wykonuje morfologiczną operację Hit-or-miss, , którą to można przedstawić jako część wspólną erozji
+        Funkcja, która na obrazie binarnym wykonuje morfologiczną operację Hit-or-miss, którą to można przedstawić jako część wspólną erozji
         erozji obrazu z elementem strukturalnym oznaczającym "trafienia" oraz erozji odwróconego obrazu z elementem strukturalnym oznaczającym "pudła"
-        :param img:  Macierz o wymiarach M x N przedstawiajaca liczbową reprezentacje obrazu binarnego (wartosci {0, 255}).
+        :param img: Macierz o wymiarach M x N przedstawiajaca liczbową reprezentacje obrazu binarnego (wartosci {0, 255}).
         :param structuring_element: Element strukturalny - macierz najczęściej kwadratowa określająca zakres w jakim wykonywana jest erozja.
         :param anchor: Koordynaty punktu w elemencie strukturalnym, na którym to po nałożeniu elementu sktrukturalnego na obraz będzie wykonywana erozja.
         :return: Macierz o wymiarach M x N przedstawiajaca liczbową reprezentacje obrazu binarnego po wykonanej erozji.
@@ -330,6 +330,7 @@ class Algorithms(object):
     @staticmethod
     def morph_gradient(img, structuring_element, anchor):
         """
+        Funkcja, która na podanym obrazie wykonuje operację gradientu morfologicznego.
 
         :param img:  Macierz o wymiarach M x N przedstawiajaca liczbową reprezentacje obrazu binarnego (wartosci {0, 255}).
         :param structuring_element: Element strukturalny - macierz najczęściej kwadratowa określająca zakres w jakim wykonywana jest erozja.
@@ -343,6 +344,7 @@ class Algorithms(object):
     @staticmethod
     def top_hat(img, structuring_element, anchor):
         """
+        Funkcja, która wykonuje na podanym obrazie operację top hat.
 
         :param img:  Macierz o wymiarach M x N przedstawiajaca liczbową reprezentacje obrazu binarnego (wartosci {0, 255}).
         :param structuring_element: Element strukturalny - macierz najczęściej kwadratowa określająca zakres w jakim wykonywana jest erozja.
@@ -355,6 +357,7 @@ class Algorithms(object):
     @staticmethod
     def black_hat(img, structuring_element, anchor):
         """
+        Funkcja, która wykonuje na podanym obrazie operację black hat.
 
         :param img:  Macierz o wymiarach M x N przedstawiajaca liczbową reprezentacje obrazu binarnego (wartosci {0, 255}).
         :param structuring_element: Element strukturalny - macierz najczęściej kwadratowa określająca zakres w jakim wykonywana jest erozja.
@@ -366,6 +369,11 @@ class Algorithms(object):
 
     @staticmethod
     def invert(img):
+        """
+        Funkcja, która wykonuje operację odwrócenia kanałów na podanym obrazie.
+        :param img: Macierz o wymiarach M x N przedstawiająca liczbową reprezentację obrazu.
+        :return: Macierz o wymiarach M x N przedstawiająca liczbową reprezentację obrazu, gdzie każdy z kanałów jest odwrócony.
+        """
         if isinstance(img, np.ndarray):
             if len(img.shape) == 3:
                 channels = []
@@ -385,6 +393,12 @@ class Algorithms(object):
 
     @staticmethod
     def change_brightness(img, value):
+        """
+        Funkcja, która wykonuje operację zmiany jasności na podanym obrazie poprzez dodanie wartości do każdego z pikseli.
+        :param img: Macierz o wymiarach M x N przedstawiajaca liczbową reprezentacje obrazu w skali szarości.
+        :param value: Wartość jasności, która zostaje dodana do każdego z pikseli.
+        :return: Macierz o wymiarach M x N przedstawiajaca reprezentację obrazu ze zmienioną jasnością.
+        """
         if isinstance(img, np.ndarray):
             if len(img.shape) == 2:
                 height, width = img.shape
@@ -406,6 +420,12 @@ class Algorithms(object):
 
     @staticmethod
     def change_contrast(img, alpha):
+        """
+        Funkcja, która wykonuje operację zmiany kontrastu na obrazie.
+        :param img: Macierz o wymiarach M x N przedstawiająca liczbową reprezentację obrazu w skali szarości.
+        :param alpha: Wartość kontrastu
+        :return: Macierz o wymiarach M x N przedstawiajaca reprezentację obrazu ze zmienionym kontrastem.
+        """
         if isinstance(img, np.ndarray):
             if len(img.shape) == 2:
                 if isinstance(alpha, (float, int)):
@@ -425,6 +445,11 @@ class Algorithms(object):
 
     @staticmethod
     def stretching_histogram(img):
+        """
+        Funkcja, która na obrazie wykonuje operację rozciągnięcia histogramu.
+        :param img: Macierz o wymiarach M x N przedstawiająca liczbową reprezentację obrazu w skali szarości.
+        :return: Macierz o wymiarach M x N obrazu z rozciągniętym histogramem.
+        """
         if isinstance(img, np.ndarray):
             if len(img.shape) == 2:
                 height, width = img.shape
@@ -445,6 +470,12 @@ class Algorithms(object):
 
     @staticmethod
     def multiplication(img, img_2):
+        """
+        Funkcja, która na dwóch obrazach wykonuje operację ich mnożenia.
+        :param img: Macierz o wymiarach M x N przedstawiajaca liczbową reprezentacje pierwszego obrazu.
+        :param img_2: Macierz o wymiarach M x N przedstawiajaca liczbową reprezentacje drugiego obrazu.
+        :return: Macierz o wymiarach M x N będąca wynikiem mnożenia dwóch obrazów.
+        """
         if isinstance(img, np.ndarray) and isinstance(img_2, np.ndarray):
             result = None
             if img.shape == img_2.shape:
@@ -497,6 +528,12 @@ class Algorithms(object):
 
     @staticmethod
     def convolution(img, kernel):
+        """
+        Funkcja, która na obrazie wykonuję operację konwolucji podanym jądrem.
+        :param img: Macierz o wymiarach M x N przedstawiajaca liczbową reprezentację obrazu.
+        :param kernel: jądro konwolucji (kwadrat rozmiaru nieparzystego)
+        :return: Macierz o wymiarach M x N przedstawiajaca liczbową reprezentację obrazu po konwolucji.
+        """
         if isinstance(img, np.ndarray):
             if isinstance(kernel, np.ndarray):
                 if len(kernel.shape) == 2:
@@ -527,6 +564,11 @@ class Algorithms(object):
 
     @staticmethod
     def histogram_equalization(img):
+        """
+        Funkcja, która wykonuje operację wyrównania histogramu na podanym obrazie.
+        :param img: Macierz o wymiarach M x N przedstawiajaca liczbową reprezentacje obrazu.
+        :return: Macierz o wymiarach M x N przedstawiająca liczbową reprezentację obrazu po wyrównaniu histogramu.
+        """
         if isinstance(img, np.ndarray):
             if len(img.shape) == 3:
                 b = img[:, :, 0]
@@ -545,6 +587,13 @@ class Algorithms(object):
 
     @staticmethod
     def bilinear(img, x, y):
+        """
+        Funkcja, która wykonuje operację interpolacji dwuliniowej na podanym obrazie.
+        :param img: Macierz o wymiarach M x N przedstawiajaca liczbową reprezentację obrazu do modyfikacji.
+        :param x: Szerokość obrazu po interpolacji.
+        :param y: Wysokość obrazu po interpolacji.
+        :return result: Macierz przedstawiajaca liczbową reprezentację zmodyfikowanego obrazu.
+        """
         if isinstance(img, np.ndarray):
             if isinstance(x, int) and isinstance(y, int):
                 if 0 < x and 0 < y:
@@ -568,12 +617,21 @@ class Algorithms(object):
 
     @staticmethod
     def _invert_channel(img):
+        """
+        Funkcja, która odwraca wartość podanego kanału.
+        :return result: Odwrócona wartość kanału.
+        """
         result = img.copy()
         result = 255 - result
         return result
 
     @staticmethod
     def _histogram_equalization_channel(img):
+        """
+        Funkcja, która wykonuje operacje wyrównania histogramu na podanym kanale.
+        :param img: Macierz o wymiarach M x N przedstawiająca reprezentację obrazu.
+        :return: Macierz o wymiarach M x N po normalizacji histogramu.
+        """
         result = img.copy()
         his, bins = np.histogram(img, np.arange(0, 257))
         cumulative_distribution = his.cumsum()
@@ -585,6 +643,12 @@ class Algorithms(object):
 
     @staticmethod
     def _make_lut_stretching(minimum, maximum):
+        """
+        Funkcja, która wykonuje operację rozciągnięcia w podanym zakresie.
+        :param minimum: minimalna wartość rozciągnięcia
+        :param maximum: maksymalna wartość rozciągnięcia
+        :return: Tablica zawierająca wynik rozciągnięcia.
+        """
         lut = [0] * 256
         for i in range(256):
             lut[i] = int((i - minimum) / (maximum - minimum) * 255)
@@ -592,6 +656,10 @@ class Algorithms(object):
 
     @staticmethod
     def _make_lut_contrast(alpha):
+        """
+        :param alpha:
+
+        """
         lut = np.array([0] * 256)
         for i in range(256):
             lut[i] = int(alpha * (i - 127) + 127)
@@ -601,6 +669,9 @@ class Algorithms(object):
 
     @staticmethod
     def _convolution_channel(img, kernel):
+        """
+
+        """
         height, width = img.shape
         kernel_height, kernel_width = kernel.shape
         divisor = np.sum(kernel)
@@ -619,11 +690,19 @@ class Algorithms(object):
 
     @staticmethod
     def _multiplication_channel(img, mask):
+        """
+        Funkcja, która mnoży dany obraz przez maskę.
+        :param img: Macierz o wymiarach M x N przedstawiająca liczbową reprezentację obrazu do pomnożenia.
+        :param mask: Maska wykorzystywana w mnożeniu
+        """
         result = (img / 255) * (mask / 255)
         return (result * 255).astype("uint8")
 
     @staticmethod
     def _bilinear_interp(img, x, y):
+        """
+
+        """
         height, width = img.shape[:2]
         x0 = np.floor(x).astype(int)
         x1 = np.floor(x).astype(int) + 1
@@ -649,6 +728,9 @@ class Algorithms(object):
 
     @staticmethod
     def _bilinear_channel(img, x, y):
+        """
+
+        """
         height, width = img.shape[:2]
         result = np.zeros((y, x), dtype="uint8")
         height_ratio = height / y
