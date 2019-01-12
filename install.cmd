@@ -1,2 +1,0 @@
-call install_backend.cmd
-call install_frontend.cmd

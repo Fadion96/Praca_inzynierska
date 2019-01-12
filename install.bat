@@ -1,0 +1,2 @@
+call install_backend.bat
+call install_frontend.bat

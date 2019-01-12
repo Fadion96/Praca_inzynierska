@@ -96,13 +96,19 @@ class App extends Component {
 
     changeImage = (input, e) => {
         let file = e.target.files[0];
-        let fileData = new FileReader();
-        fileData.onloadend = (ev) => {
-            const content = ev.target.result;
-            input.source = content.split(',')[1];
-        };
-        fileData.readAsDataURL(file);
-        this.handle2Close();
+        let allowedTypes = ["image/png", "image/jpeg", "image/bmp", "image/tiff"];
+        if (allowedTypes.includes(file.type)) {
+            let fileData = new FileReader();
+            fileData.onloadend = (ev) => {
+                const content = ev.target.result;
+                input.source = content.split(',')[1];
+            };
+            fileData.readAsDataURL(file);
+            this.handle2Close();
+        }
+        else {
+            alert("Niewłaściwy typ obrazka. Wspierane typy: " + allowedTypes)
+        }
     };
 
     uploadFile = (e) => {
@@ -129,34 +135,40 @@ class App extends Component {
     };
 
     encodeImage = (e) => {
+        let allowedTypes = ["image/png", "image/jpeg", "image/bmp", "image/tiff"];
         let file = e.target.files[0];
-        let fileData = new FileReader();
-        let number = this.state.imageCounter;
-        let inputCount = this.state.inputCounter;
-        fileData.onloadend = this.handleFile;
-        fileData.readAsDataURL(file);
-        let image = {};
-        image.name = "img_" + number;
-        image.div =
-            <div
-                className={"input_image_div"}
-                key={["img_" + number]}
-                id={["img_" + number]}
-                onClick={this.processClick}
-                style={{
-                    top: [(inputCount - 1) * 100 + 25 + "px"]
-                }}>
-                {"Obraz " + inputCount + "\nimg_" + number}
-            </div>;
-        image.x = 75;
-        image.y = (inputCount - 1) * 100 + 55;
-        this.setState(prevState => ({
-            ...prevState,
-            imageCounter: number + 1,
-            inputCounter: inputCount + 1,
-            imgs: [...prevState.imgs, image],
-        }));
-        this.image_input_ref.current.value = '';
+        if (allowedTypes.includes(file.type)) {
+            let fileData = new FileReader();
+            let number = this.state.imageCounter;
+            let inputCount = this.state.inputCounter;
+            fileData.onloadend = this.handleFile;
+            fileData.readAsDataURL(file);
+            let image = {};
+            image.name = "img_" + number;
+            image.div =
+                <div
+                    className={"input_image_div"}
+                    key={["img_" + number]}
+                    id={["img_" + number]}
+                    onClick={this.processClick}
+                    style={{
+                        top: [(inputCount - 1) * 100 + 25 + "px"]
+                    }}>
+                    {"Obraz " + inputCount + "\nimg_" + number}
+                </div>;
+            image.x = 75;
+            image.y = (inputCount - 1) * 100 + 55;
+            this.setState(prevState => ({
+                ...prevState,
+                imageCounter: number + 1,
+                inputCounter: inputCount + 1,
+                imgs: [...prevState.imgs, image],
+            }));
+            this.image_input_ref.current.value = '';
+        }
+        else {
+            alert("Niewłaściwy typ obrazka. Wspierane typy: " + allowedTypes)
+        }
     };
 
     getDivCenter = (name) => {
@@ -643,13 +655,13 @@ class App extends Component {
                 path: path,
             })
                 .then(res => {
-                     this.setState(prevState => ({
-                         ...prevState,
-                         path: this.fixPath(res.data)
-                     }), () => {
-                         this.createInputs();
-                         this.createOperations()
-                     });
+                    this.setState(prevState => ({
+                        ...prevState,
+                        path: this.fixPath(res.data)
+                    }), () => {
+                        this.createInputs();
+                        this.createOperations()
+                    });
                 })
                 .catch(error => {
                     alert(error.response.data.error)
@@ -736,12 +748,12 @@ class App extends Component {
                 imageCount++;
             }
         }
-         this.setState({
-             imageCounter: imageCount,
-             inputCounter: inputCount,
-             operationCounter: operationCount
-         });
-        return {nodes: nodes, inputs: inputs, operations: operations, adjacency: {} }
+        this.setState({
+            imageCounter: imageCount,
+            inputCounter: inputCount,
+            operationCounter: operationCount
+        });
+        return {nodes: nodes, inputs: inputs, operations: operations, adjacency: {}}
     };
 
     createInputs = () => {
@@ -840,6 +852,7 @@ class App extends Component {
                         saveAlgorithm={this.saveAlgorithm}
                         jsonHandler={this.uploadJson}
                         inputImageRef={this.image_input_ref}
+                        disabled={this.state.disabled}
                     />
                 </Container>
                 <Container fluid={true}>

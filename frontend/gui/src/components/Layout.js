@@ -16,7 +16,7 @@ const AppMenu = (props) => {
                 </Menu.Item>
                 <Menu.Item>
                     <label className="custom-file-upload">
-                        <input ref={props.inputImageRef} type='file' accept='image/*' onChange={props.imagesHandler}/>
+                        <input ref={props.inputImageRef} type='file' accept='image/png, image/jpeg, image/bmp, image/tiff' onChange={props.imagesHandler}/>
                         <i className="file image outline icon"/> Załaduj obraz
                     </label>
                 </Menu.Item>
@@ -26,6 +26,7 @@ const AppMenu = (props) => {
                         basic
                         content='Wykonaj algorytm'
                         onClick={props.handleSend}
+                        disabled={props.disabled}
                     />
                 </Menu.Item>
                 <Menu.Item>
@@ -49,6 +50,7 @@ const AppMenu = (props) => {
                         basic
                         content='Zapisz algorytm'
                         onClick={props.saveAlgorithm}
+                        disabled={props.disabled}
                     />
                 </Menu.Item>
                      <Menu.Item>
