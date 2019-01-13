@@ -4,7 +4,7 @@ import './scss/index.scss';
 import 'semantic-ui-css/semantic.min.css'
 import AppMenu from './components/Layout';
 import FunctionsList from './containers/FunctionsList';
-import {Button, Container, Dimmer, Form, Grid, Header, Icon, Image, Loader, Modal,} from "semantic-ui-react";
+import {Button, Container, Dimmer, Form, Grid, Header, Icon, Image, Loader, Modal} from "semantic-ui-react";
 import axios from "axios";
 import {saveAs} from 'file-saver';
 
