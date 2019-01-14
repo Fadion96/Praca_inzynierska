@@ -5,7 +5,7 @@ from .serializers import ProcessingFunctionSerializer
 
 class ProcessingFunctionViewSet(viewsets.ModelViewSet):
     """
-    A viewset for viewing and editing user instances.
+    Zbiór widoków, obsługujący oglądanie, oraz edycje instancji zaimplementowanych algorytmów przetwarzania obrazów z bazy danych.
     """
     serializer_class = ProcessingFunctionSerializer
     queryset = ProcessingFunction.objects.all()

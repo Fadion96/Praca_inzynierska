@@ -13,6 +13,11 @@ from processing.models import ProcessingFunction, UserFunction, Session
 
 @api_view(['POST'])
 def handle_processing(request):
+    """
+    Funkcja widoku, która dla algorytmu w danych żądania, wykonuje go oraz zwraca jego rezultat, bądź komunikat błędu.
+    :param request: Żądanie wysłane na adres widoku
+    :return: Odpowiedź serwera
+    """
     path = request.data.get("path")
     process = Processing(path)
     if process.has_one_result_image():
@@ -42,6 +47,12 @@ def handle_processing(request):
 
 @api_view(['POST'])
 def handle_file_upload(request):
+    """
+    Funkcja widoku, która dla dodawanego przez użytkownika algorytmu przetwarzania obrazu w danych żądania
+    sprawdza czy jest zgodny ze specyfikacją i zapuje go do bazy danych programu.
+    :param request: Żądanie wysłane na adres widoku
+    :return: Odpowiedź serwera
+    """
     file = request.FILES.get("file")
     session_id = request.POST.get("session_id")
     name = file.name
@@ -76,12 +87,22 @@ def handle_file_upload(request):
 
 @api_view(['GET'])
 def get_session_id(request):
+    """
+    Funkcja widoku, która dla żądania, zwraca id sesji.
+    :param request: Żądanie wysłane na adres widoku
+    :return: Odpowiedź serwera z id sesji
+    """
     session = Session.objects.create_session()
     return Response({"id": session.session_id})
 
 
 @api_view(['POST'])
 def check_algorithm(request):
+    """
+    Funkcja widoku, która sprawdza czy algorytm jest poprawny.
+    :param request: Żądanie wysłane na adres widoku
+    :return: Odpowiedź serwera
+    """
     path = request.data.get("path")
     process = Processing(path)
     if process.has_one_result_image():

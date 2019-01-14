@@ -5,10 +5,17 @@ import cv2
 from skimage.exposure import rescale_intensity
 
 
+
 class Algorithms(object):
+    """
+    Klasa, która zawiera algorytmy przetwarzania obrazu
+    """
 
     @staticmethod
     def _get_dict_of_methods():
+        """
+        Funkcja, która zwraca algorytmy określone w tej klasie.
+        """
         return {name: func for name, func in getmembers(Algorithms, isroutine) if not name.startswith("_")}
 
     @staticmethod
@@ -657,12 +664,13 @@ class Algorithms(object):
     @staticmethod
     def _make_lut_contrast(alpha):
         """
-        :param alpha:
-
+        Funkcja, która tworzy tablice LUT dla zmiany kontrastu.
+        :param alpha: mnożnik kontrastu
+        :return: Tablica LUT dla zmiany kontrastu
         """
         lut = np.array([0] * 256)
         for i in range(256):
-            lut[i] = int(alpha * (i - 127) + 127)
+            lut[i] = int(alpha * i)
         lut[lut > 255] = 255
         lut[lut < 0] = 0
         return lut
@@ -670,7 +678,10 @@ class Algorithms(object):
     @staticmethod
     def _convolution_channel(img, kernel):
         """
-
+        Funkcja, która wykonuje operację konwolucji na kanale z obrazu.
+        :param img: kanał obrazu
+        :param kernel: jądro konwolucji
+        :return: kanał po wykonaniu konwolucji
         """
         height, width = img.shape
         kernel_height, kernel_width = kernel.shape
@@ -701,7 +712,10 @@ class Algorithms(object):
     @staticmethod
     def _bilinear_interp(img, x, y):
         """
-
+        Funkcja pomocnicza interpolacji dwuliniowej, która dla piksela o współrzędnych (x,y), w zmodyfikowanym obrazie ,wyznacza jego wartosc
+        :param img: Kanał obrazu przeznaczonego do modyfikacji
+        :param x: Współrzędna x w zmodyfikowanym obrazie
+        :param y: Współrzędna y w zmodyfikowanym obrazie
         """
         height, width = img.shape[:2]
         x0 = np.floor(x).astype(int)
@@ -729,7 +743,10 @@ class Algorithms(object):
     @staticmethod
     def _bilinear_channel(img, x, y):
         """
-
+        Funkcja wykonująca interpolację dwuliniową na kanale obrazu
+        :param img: Kanał obrazu przeznaczonego do modyfikacji
+        :param x: Współrzędna x w zmodyfikowanym obrazie
+        :param y: Współrzędna y w zmodyfikowanym obrazie
         """
         height, width = img.shape[:2]
         result = np.zeros((y, x), dtype="uint8")
