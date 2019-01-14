@@ -6,11 +6,12 @@ install: install_backend install_frontend
 install_backend: install_virtualenv setup_database
 
 install_virtualenv:
-	virtualenv $(ROOT_DIR)/env;
-	source $(ROOT_DIR)/env/bin/activate;
-	pip3 install -r $(ROOT_DIR)/requirements.txt
+	virtualenv $(ROOT_DIR)/env; \
+	source $(ROOT_DIR)/env/bin/activate; \
+	pip3 install -r $(ROOT_DIR)/requirements.txt;
 
 setup_database:
+	source $(ROOT_DIR)/env/bin/activate; \
 	cd $(ROOT_DIR)/backend/src; \
 	$(PYTHON) manage.py makemigrations; \
 	$(PYTHON) manage.py migrate; \
