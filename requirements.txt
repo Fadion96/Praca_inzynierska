@@ -1,6 +1,6 @@
 ﻿Django==2.1.11
 django-cors-headers==2.4.0
-djangorestframework==3.9.1
+djangorestframework==3.11.2
 opencv-python==3.4.5.20
 scikit-image==0.14.1
 scipy==1.2.0
